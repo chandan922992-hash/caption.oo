@@ -1,11 +1,20 @@
 import os
+import sys
 from pathlib import Path
 
 APP_NAME = "CLEAPYFLY"
 APP_VERSION = "1.1.0"
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = Path(os.environ.get("CLEAPYFLY_DATA_DIR", ROOT_DIR / "data"))
+
+
+def _default_data_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent / "data"
+    return ROOT_DIR / "data"
+
+
+DATA_DIR = Path(os.environ.get("CLEAPYFLY_DATA_DIR", _default_data_dir()))
 MEDIA_DIR = DATA_DIR / "media"
 PROJECTS_DIR = DATA_DIR / "projects"
 EXPORTS_DIR = DATA_DIR / "export"

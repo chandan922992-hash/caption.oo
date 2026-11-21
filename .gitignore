@@ -10,3 +10,8 @@ frontend/dist/
 .vite/
 *.log
 .env
+
+backend/build/
+backend/spec/
+*.spec
+backend/dist/

@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Optional
+import sys
 
 import httpx
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -313,7 +314,17 @@ def _assert_inside(f: Path, base: Path) -> None:
         raise HTTPException(403)
 
 
-_FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+def _frontend_dist() -> Path:
+    if getattr(sys, "frozen", False):
+        base = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+        bundled = base / "frontend_dist"
+        if bundled.is_dir():
+            return bundled
+        return Path(sys.executable).resolve().parent / "frontend_dist"
+    return Path(__file__).resolve().parents[2] / "frontend" / "dist"
+
+
+_FRONTEND_DIST = _frontend_dist()
 if _FRONTEND_DIST.is_dir():
     app.mount("/", StaticFiles(directory=str(_FRONTEND_DIST), html=True), name="frontend")
 
