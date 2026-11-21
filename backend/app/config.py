@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 APP_NAME = "CLEAPYFLY"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1.0"
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("CLEAPYFLY_DATA_DIR", ROOT_DIR / "data"))
@@ -25,7 +25,7 @@ YTDLP_ENABLED = os.environ.get("CLEAPYFLY_YTDLP_ENABLED", "0") == "1"
 MIN_CLIPS = 1
 MAX_CLIPS = 20
 
-DURATION_PRESETS = [15, 30, 45, 60, 90]
+DURATION_PRESETS = [20, 30, 50, 60]
 CUSTOM_DURATION_RANGE = (10, 180)
 
 RATIOS = {

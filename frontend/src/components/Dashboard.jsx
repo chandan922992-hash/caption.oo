@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as api from "../api.js";
-import { IconClipboard, IconPlay, IconSpark, IconUpload, IconChart, IconFilm } from "./icons.jsx";
+import { IconClipboard, IconPlay, IconSpark, IconUpload, IconChart, IconFilm, IconScissors } from "./icons.jsx";
 
 const fmtDuration = (s) => {
   if (!s) return "—";
@@ -45,7 +45,10 @@ export default function Dashboard({ status, onCreated, onOpenProject, toast }) {
     try {
       const meta = await api.inspectSource(trimmed);
       setInfo({ ...meta, url: trimmed });
-      if (!meta.downloadable) {
+      const acq = meta.acquisition || {};
+      if (meta.kind === "youtube" && !meta.downloadable && !acq.can_process) {
+        setError(acq.reason || "This video cannot be acquired through an authorized source on this deployment.");
+      } else if (!meta.downloadable) {
         setError(
           "This video page can be read for metadata, but its video file cannot be downloaded through official APIs. " +
           "For a guaranteed workflow, upload the video file directly below."
@@ -130,9 +133,22 @@ export default function Dashboard({ status, onCreated, onOpenProject, toast }) {
               <IconClipboard size={15} /> Paste
             </button>
             <button className="btn primary" onClick={handleInspect} disabled={busy !== "" || !url.trim()}>
-              {busy === "inspect" ? <><span className="spinner" /> Checking…</> : <><IconPlay size={15} /> Analyze Video</>}
+              {busy === "inspect" ? <><span className="spinner" /> Checking…</> : <><IconPlay size={15} /> Inspect Video</>}
             </button>
           </div>
+
+          {info && (info.can_process || info.downloadable) && (
+            <div className="source-options">
+              <span className="hint">
+                {info.kind === "youtube"
+                  ? "Acquisition authorized on this deployment — you confirm you hold the rights to this video."
+                  : "Ready for full local processing."}
+              </span>
+              <button className="btn primary" onClick={handleCreateFromUrl} disabled={busy !== ""}>
+                {busy === "create" ? <><span className="spinner" /> Acquiring video…</> : <><IconScissors size={15} /> Generate Clips</>}
+              </button>
+            </div>
+          )}
 
           <div className="source-options">
             <span className="dash" />
@@ -157,6 +173,13 @@ export default function Dashboard({ status, onCreated, onOpenProject, toast }) {
                 Source type: {info.kind}
                 {info.kind === "youtube" && " · metadata via official oEmbed API"}
                 {info.content_type && ` · ${info.content_type}`}
+              </div>
+              <div style={{ marginTop: 4, fontWeight: 600 }}>
+                {info.can_process || info.downloadable
+                  ? "✓ Video can be acquired through an authorized source — proceed below."
+                  : info.acquisition
+                    ? "✕ Video file acquisition is not authorized on this deployment."
+                    : "✕ Not directly downloadable — use Local Video below."}
               </div>
               {info.notes?.length > 0 && (
                 <ul style={{ margin: "6px 0 0 16px", opacity: 0.85 }}>

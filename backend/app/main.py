@@ -51,11 +51,13 @@ def inspect_source(payload: dict) -> dict:
         raise HTTPException(400, "That does not look like a valid http(s) URL.")
     if kind == "youtube":
         try:
-            return sources.fetch_youtube_metadata(url)
+            meta = sources.fetch_youtube_metadata(url)
         except RuntimeError as exc:
             raise HTTPException(502, str(exc))
         except httpx.HTTPError:
             raise HTTPException(502, "Could not reach the video platform. Check the URL and your connection.")
+        meta["acquisition"] = sources.youtube_acquisition_status(url)
+        return meta
     try:
         head = sources.probe_direct_url(url)
     except httpx.HTTPError as exc:
@@ -72,7 +74,10 @@ def inspect_source(payload: dict) -> dict:
             "thumbnail_url": "",
             "author": "",
             "downloadable": True,
+            "can_process": True,
+            "reason": "",
             "notes": [
+                "Direct video file URL — authorized for full local processing.",
                 f"Content type: {ctype or 'unknown'}",
                 f"File size: {head['content_length'] / (1024 * 1024):.1f} MB" if head["content_length"] else "File size unknown",
             ],

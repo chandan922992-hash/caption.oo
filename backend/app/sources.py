@@ -39,6 +39,31 @@ def youtube_id(url: str) -> Optional[str]:
     return None
 
 
+def youtube_acquisition_status(url: str, client: Optional[httpx.Client] = None) -> dict:
+    installed = ytdlp_available()
+    gated_open = config.YTDLP_ENABLED
+    can_process = gated_open and installed
+    if gated_open and not installed:
+        reason = (
+            "Gated URL acquisition is enabled but yt-dlp is not installed on this machine. "
+            "Install it (pip install yt-dlp) or upload the video file directly."
+        )
+    elif not gated_open:
+        reason = (
+            "This deployment has authorized URL acquisition disabled. CLEAPYFLY will not download from "
+            "YouTube unless the operator enables CLEAPYFLY_YTDLP_ENABLED=1 and installs yt-dlp — and you "
+            "hold the download rights to the video. Upload the file directly or use a direct video URL."
+        )
+    else:
+        reason = ""
+    return {
+        "can_process": can_process,
+        "reason": reason,
+        "ytdlp_installed": installed,
+        "authorization_required": True,
+    }
+
+
 def fetch_youtube_metadata(url: str, client: Optional[httpx.Client] = None) -> dict:
     vid = youtube_id(url)
     own = client is None

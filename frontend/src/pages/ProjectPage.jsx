@@ -4,11 +4,11 @@ import { IconBack, IconDownload, IconRefresh, IconScissors, IconSpark, IconTrash
 
 const DURATIONS = [
   { value: "", label: "AI Auto" },
-  { value: 15, label: "15 sec" },
+  { value: 20, label: "20 sec" },
   { value: 30, label: "30 sec" },
-  { value: 45, label: "45 sec" },
+  { value: 50, label: "50 sec" },
   { value: 60, label: "60 sec" },
-  { value: 90, label: "90 sec" },
+  { value: "custom", label: "Custom duration" },
 ];
 
 export default function ProjectPage({ projectId, onBack, toast, onDeleted }) {
@@ -23,6 +23,7 @@ export default function ProjectPage({ projectId, onBack, toast, onDeleted }) {
   const [bitrate, setBitrate] = useState("high");
   const [audio, setAudio] = useState("high");
   const [rendering, setRendering] = useState({});
+  const [customDuration, setCustomDuration] = useState("45");
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -47,10 +48,19 @@ export default function ProjectPage({ projectId, onBack, toast, onDeleted }) {
 
   const runAnalysis = async () => {
     setError("");
+    let preset = duration && duration !== "custom" ? Number(duration) : null;
+    if (duration === "custom") {
+      const n = Math.round(Number(customDuration));
+      if (!Number.isFinite(n) || n < 10 || n > 180) {
+        toast("Custom duration must be between 10 and 180 seconds.", "error");
+        return;
+      }
+      preset = n;
+    }
     try {
       await api.analyzeProject(projectId, {
-        target_count: count,
-        duration_preset: duration ? Number(duration) : null,
+        target_count: count === 0 ? 12 : count,
+        duration_preset: preset,
         ratio,
         framing,
       });
@@ -196,6 +206,20 @@ export default function ProjectPage({ projectId, onBack, toast, onDeleted }) {
               {DURATIONS.map((d) => <option key={d.label} value={d.value}>{d.label}</option>)}
             </select>
           </div>
+          {duration === "custom" && (
+            <div className="field">
+              <label>Duration (10–180 s)</label>
+              <input
+                className="input"
+                type="number"
+                min={10}
+                max={180}
+                value={customDuration}
+                onChange={(e) => setCustomDuration(e.target.value)}
+                style={{ width: 110 }}
+              />
+            </div>
+          )}
           <div className="field">
             <label>Aspect ratio</label>
             <select className="input select" value={ratio} onChange={(e) => setRatio(e.target.value)}>
