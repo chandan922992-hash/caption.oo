@@ -1,0 +1,17 @@
+# CLEAPYFLY
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+backend/data/
+node_modules/
+frontend/dist/
+.vite/
+*.log
+.env
+
+backend/build/
+backend/spec/
+*.spec
+backend/dist/
